@@ -56,7 +56,7 @@ def validate_parameters(params, mean, std_dev):
 
 def get_params(data, distribution):
     ranges = distribution._get_min_max(data)
-    params = distribution._get_params(data)
+    params = distribution._get_params(data, ranges)
 
     return {**ranges, **params}
 
