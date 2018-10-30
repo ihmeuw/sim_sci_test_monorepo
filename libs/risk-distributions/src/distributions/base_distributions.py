@@ -94,7 +94,7 @@ class BaseDistribution:
 
 
     @staticmethod
-    def _get_params(data: pd.DataFrame, x_range: Dict[str, np.ndarray]) -> Dict[str, pd.Series]:
+    def _get_params(data: pd.DataFrame, x_range: Dict[str, pd.Series]) -> Dict[str, pd.Series]:
         raise NotImplementedError()
 
     def process(self, data: Union[np.ndarray, pd.Series], process_type: str,
@@ -135,7 +135,7 @@ class Beta(BaseDistribution):
     distribution = stats.beta
 
     @staticmethod
-    def _get_params(data: pd.DataFrame, x_range: Dict[str, np.ndarray]) -> Dict[str, pd.Series]:
+    def _get_params(data: pd.DataFrame, x_range: Dict[str, pd.Series]) -> Dict[str, pd.Series]:
         data_mean, data_sd = data['mean'], data['standard_deviation']
         scale = x_range['x_max'] - x_range['x_min']
         a = 1 / scale * (data_mean - x_range['x_min'])
@@ -285,7 +285,7 @@ class MirroredGumbel(BaseDistribution):
     distribution = stats.gumbel_r
 
     @staticmethod
-    def _get_params(data: pd.DataFrame, x_range: Dict[str, np.ndarray]) -> Dict[str, pd.Series]:
+    def _get_params(data: pd.DataFrame, x_range: Dict[str, pd.Series]) -> Dict[str, pd.Series]:
         loc = x_range['x_max'] - data['mean'] - (
                     np.euler_gamma * np.sqrt(6) / np.pi * data['standard_deviation'])
         scale = np.sqrt(6) / np.pi * data['standard_deviation']
@@ -310,7 +310,7 @@ class MirroredGamma(BaseDistribution):
     distribution = stats.gamma
 
     @staticmethod
-    def _get_params(data: pd.DataFrame, x_range: Dict[str, np.ndarray]) -> Dict[str, pd.Series]:
+    def _get_params(data: pd.DataFrame, x_range: Dict[str, pd.Series]) -> Dict[str, pd.Series]:
         mean, sd = data['mean'], data['standard_deviation']
         a = ((x_range['x_max'] - mean) / sd) ** 2
         scale = sd ** 2 / (x_range['x_max'] - mean)
