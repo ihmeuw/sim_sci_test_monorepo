@@ -45,16 +45,34 @@ def _get_optimization_result(data: pd.DataFrame, func: Callable,
     return tuple(results)
 
 
-def validate_parameters(params, mean, std_dev):
-    if params and (mean or std_dev):
-        raise ValueError("You may supply either a dataframe or mean and standard deviation but not both.")
+def validate_parameters(data, params, mean, std_dev):
+    if ((data is not None or (params and (mean or std_dev)))
+            and (params or (data is not None and (mean or std_dev)))):
+        raise ValueError("You may supply either a dataframe or pre-calculated parameters or"
+                         " mean and standard deviation but not multiple.")
     if params and not isinstance(params, Dict):
         raise TypeError("If you specify pre-constructed parameters, they must be in the form of a dictionary.")
+    if data is not None and (not isinstance(data, pd.DataFrame) or data.empty):
+        raise TypeError("If you specify data, it must be in the form of a non-empty dataframe.")
     if mean and not std_dev or not mean and std_dev:
         raise ValueError("You must specify both mean and standard deviation.")
 
 
 def get_params(data, distribution):
+    """ Precalculates the parameters needed for distributions, which can then be passed to
+    distributions.
+
+    Parameters
+    ---------
+    data :
+        Table where each row has a `mean` and `standard_deviation` for a single distribution.
+    distribution :
+        The distribution class to use to calculate parameters.
+
+    Returns
+    --------
+        A dictionary containing the parameters, as well as the min and max range data.
+    """
     ranges = distribution._get_min_max(data)
     params = distribution._get_params(data, ranges)
 
@@ -66,13 +84,14 @@ class BaseDistribution:
 
     distribution = None
 
-    def __init__(self, params: Dict[str, Union[np.ndarray, pd.Series]]=None,
+    def __init__(self, data: pd.DataFrame=None, params: Dict[str, Union[np.ndarray, pd.Series]]=None,
                  mean: Union[pd.Series, float, int]=None, std_dev: Union[pd.Series, float, int]=None):
 
-        validate_parameters(params, mean, std_dev)
+        validate_parameters(data, params, mean, std_dev)
 
-        if mean and std_dev:
-            data = pd.DataFrame({'mean': mean, 'standard_deviation': std_dev})
+        if (mean and std_dev) or data is not None:
+            if mean:
+                data = pd.DataFrame({'mean': mean, 'standard_deviation': std_dev})
             self._range = self._get_min_max(data)
             self._parameter_data = self._get_params(data, self._range)
         else:
@@ -365,22 +384,33 @@ class Weibull(BaseDistribution):
 class EnsembleDistribution:
     """Represents an arbitrary distribution as a weighted sum of several concrete distribution types."""
 
-    def __init__(self, data, weights, distribution_map):
-        self.weights, self._distributions = self.get_valid_distributions(data, weights, distribution_map)
+    def __init__(self, weights, distribution_map, data: pd.DataFrame=None, params: Dict[str, Union[np.ndarray, pd.Series]]=None,
+                 mean: Union[pd.Series, float, int]=None, std_dev: Union[pd.Series, float, int]=None):
+        self.weights, self._distributions = self.get_valid_distributions(weights, distribution_map, data, params, mean,
+                                                                         std_dev)
 
     @staticmethod
-    def get_valid_distributions(data: pd.DataFrame, weights: pd.Series,
-                                distribution_map: Dict) -> Tuple[np.ndarray, Dict]:
+    def get_valid_distributions(weights: pd.Series, distribution_map: Dict, data: pd.DataFrame=None,
+                                params: Dict[str, Union[np.ndarray, pd.Series]]=None,
+                                mean: Union[pd.Series, float, int]=None,
+                                std_dev: Union[pd.Series, float, int]=None) -> Tuple[np.ndarray, Dict]:
         """Produces a distribution that filters out non convergence errors and rescales weights appropriately.
+        Can specify either data, params, or (mean and standard deviation), but not multiple.
 
         Parameters
         ----------
-        data :
-            Table where each row has a `mean` and `standard_deviation` for a single distribution.
         weights :
             A list of normalized distribution weights indexed by distribution type.
         distribution_map :
             Mapping between distribution name and distribution class.
+        data :
+            Table where each row has a `mean` and `standard_deviation` for a single distribution.
+        params :
+            Dictionary of pre-calculated parameters for distribution.
+        mean :
+            Mean value for a single distribution or series of values, each for a single distribution.
+        std_dev :
+            Standard deviation value for a single distribution or series of values, each for a single distribution.
 
         Returns
         -------
@@ -389,7 +419,7 @@ class EnsembleDistribution:
         dist = dict()
         for key in distribution_map:
             try:
-                dist[key] = distribution_map[key](data)
+                dist[key] = distribution_map[key](data=data, params=params, mean=mean, std_dev=std_dev)
             except NonConvergenceError as e:
                 if weights[e.dist] > 0.05:
                     weights = weights.drop(e.dist)
