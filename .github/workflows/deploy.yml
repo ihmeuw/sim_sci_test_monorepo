@@ -44,7 +44,7 @@ jobs:
       - name: Install dependencies
         run: |
           python --version
-          uv pip install --system setuptools wheel build
+          uv pip install --system setuptools wheel build setuptools_scm
       - name: Debug setuptools_scm for core
         run: |
           cd libs/core
@@ -120,7 +120,7 @@ jobs:
       - name: Install dependencies
         run: |
           python --version
-          uv pip install --system setuptools wheel build
+          uv pip install --system setuptools wheel build setuptools_scm
       - name: Debug setuptools_scm for public health
         run: |
           cd libs/public_health
