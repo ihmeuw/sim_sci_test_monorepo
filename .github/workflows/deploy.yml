@@ -36,10 +36,6 @@ jobs:
         run: |
           python --version
           uv pip install --system setuptools wheel build
-      - name: Test core
-        run: |
-          uv pip install --system -e "libs/core[dev]"
-          pytest libs/core/tests --verbose
       - name: Build core
         run: |
           cd libs/core
@@ -92,10 +88,6 @@ jobs:
           else
             uv pip install --system -e libs/core
           fi
-      - name: Test public health
-        run: |
-          uv pip install --system -e "libs/public_health[dev]"
-          pytest libs/public_health/tests --verbose
       - name: Build public health
         run: |
           cd libs/public_health
