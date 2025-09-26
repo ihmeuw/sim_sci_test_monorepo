@@ -78,18 +78,6 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: libs/core/dist/
-      - name: Send mail on failure
-        if: failure()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          username: ${{ secrets.NOTIFY_EMAIL }}
-          password: ${{ secrets.NOTIFY_PASSWORD }}
-          subject: Core deployment of ${{ github.repository }} has failed
-          body: Core package deployment in workflow ${{ github.workflow }} of ${{ github.repository }} has failed
-          to: uw_ihme_simulationscience@uw.edu
-          from: SimSci Notifications
 
   deploy-public-health:
     if: ${{ (github.event_name == 'release' && contains(github.event.release.tag_name, 'public-health-v')) || github.event.inputs.package == 'public_health' }}
@@ -154,40 +142,3 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: libs/public_health/dist/
-      - name: Send mail on failure
-        if: failure()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          username: ${{ secrets.NOTIFY_EMAIL }}
-          password: ${{ secrets.NOTIFY_PASSWORD }}
-          subject: Public Health deployment of ${{ github.repository }} has failed
-          body: Public Health package deployment in workflow ${{ github.workflow }} of ${{ github.repository }} has failed
-          to: uw_ihme_simulationscience@uw.edu
-          from: SimSci Notifications
-
-  notify-success:
-    if: ${{ always() && (needs.deploy-core.result == 'success' || needs.deploy-public-health.result == 'success') }}
-    needs: [deploy-core, deploy-public-health]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Send success notification
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          username: ${{ secrets.NOTIFY_EMAIL }}
-          password: ${{ secrets.NOTIFY_PASSWORD }}
-          subject: Successful deployment of ${{ github.repository }}
-          body: |
-            Deployment workflow ${{ github.workflow }} of ${{ github.repository }} completed successfully!
-            
-            Core deployment: ${{ needs.deploy-core.result }}
-            Public Health deployment: ${{ needs.deploy-public-health.result }}
-            
-            Packages are now available on PyPI:
-            - sim-sci-test-monorepo-core
-            - sim-sci-test-monorepo-public-health
-          to: uw_ihme_simulationscience@uw.edu
-          from: SimSci Notifications
