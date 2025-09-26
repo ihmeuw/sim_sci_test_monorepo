@@ -102,6 +102,37 @@ make test-core
 make test-public-health
 ```
 
+### Versioning
+
+This project uses `setuptools_scm` for automatic versioning based on git tags. Each package has its own version tags:
+
+- Core package: `core-v1.2.3`
+- Public health package: `public-health-v1.2.3`
+
+To check the current version:
+
+```bash
+make version
+```
+
+### Creating Releases
+
+You can release each package independently:
+
+#### Release Core Package
+1. Use the GitHub Actions "release" workflow
+2. Select "core" as the package
+3. Provide a version number (e.g., `1.2.3`)
+4. This creates a `core-v1.2.3` tag and triggers deployment
+
+#### Release Public Health Package  
+1. Use the GitHub Actions "release" workflow
+2. Select "public_health" as the package
+3. Provide a version number (e.g., `1.2.3`)
+4. This creates a `public-health-v1.2.3` tag and triggers deployment
+
+The deploy workflow automatically triggers when releases are published.
+
 ### Code Formatting and Linting
 
 ```bash

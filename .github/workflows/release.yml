@@ -1,0 +1,131 @@
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.2.3)'
+        required: true
+        type: string
+      package:
+        description: 'Package to release'
+        required: true
+        default: 'core'
+        type: choice
+        options:
+        - core
+        - public_health
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0  # Needed for setuptools_scm
+          
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          
+      - name: Validate version format
+        run: |
+          if [[ ! "${{ github.event.inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: Version must be in format 1.2.3"
+            exit 1
+          fi
+          
+      - name: Create tags and test
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          if [[ "${{ github.event.inputs.package }}" == "core" ]]; then
+            echo "Creating core tag: core-v${{ github.event.inputs.version }}"
+            git tag core-v${{ github.event.inputs.version }}
+            
+            # Test core package
+            cd libs/core
+            uv pip install --system -e ".[dev]"
+            pytest tests/ --verbose
+            python -c "
+            import sim_sci_test_monorepo.core
+            print('Core version:', sim_sci_test_monorepo.core.__version__)
+            assert sim_sci_test_monorepo.core.__version__ == '${{ github.event.inputs.version }}'
+            "
+            cd ../..
+          fi
+          
+          if [[ "${{ github.event.inputs.package }}" == "public_health" ]]; then
+            echo "Creating public health tag: public-health-v${{ github.event.inputs.version }}"
+            git tag public-health-v${{ github.event.inputs.version }}
+            
+            # Test public health package  
+            cd libs/public_health
+            uv pip install --system -e ".[dev]"
+            pytest tests/ --verbose
+            python -c "
+            import sim_sci_test_monorepo.public_health
+            print('Public Health version:', sim_sci_test_monorepo.public_health.__version__)
+            assert sim_sci_test_monorepo.public_health.__version__ == '${{ github.event.inputs.version }}'
+            "
+            cd ../..
+          fi
+          
+      - name: Push tags
+        run: |
+          if [[ "${{ github.event.inputs.package }}" == "core" ]]; then
+            git push origin core-v${{ github.event.inputs.version }}
+          fi
+          if [[ "${{ github.event.inputs.package }}" == "public_health" ]]; then
+            git push origin public-health-v${{ github.event.inputs.version }}
+          fi
+          
+      - name: Create Release for Core
+        if: ${{ github.event.inputs.package == 'core' }}
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: core-v${{ github.event.inputs.version }}
+          release_name: Core Release v${{ github.event.inputs.version }}
+          body: |
+            Core Release v${{ github.event.inputs.version }}
+            
+            ## Package Released
+            - sim-sci-test-monorepo-core
+            
+            ## Installation
+            ```bash
+            uv pip install sim-sci-test-monorepo-core==${{ github.event.inputs.version }}
+            ```
+          draft: false
+          prerelease: false
+          
+      - name: Create Release for Public Health
+        if: ${{ github.event.inputs.package == 'public_health' }}
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: public-health-v${{ github.event.inputs.version }}
+          release_name: Public Health Release v${{ github.event.inputs.version }}
+          body: |
+            Public Health Release v${{ github.event.inputs.version }}
+            
+            ## Package Released
+            - sim-sci-test-monorepo-public-health
+            
+            ## Installation
+            ```bash
+            uv pip install sim-sci-test-monorepo-public-health==${{ github.event.inputs.version }}
+            ```
+          draft: false
+          prerelease: false

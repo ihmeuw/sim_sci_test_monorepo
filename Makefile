@@ -1,4 +1,4 @@
-.PHONY: install install-dev test test-core test-public-health format lint clean help
+.PHONY: install install-dev test test-core test-public-health format lint clean version help
 
 # Default target
 help:
@@ -10,6 +10,7 @@ help:
 	@echo "  test-public-health - Run public health library tests"
 	@echo "  format          - Format code with black and isort"
 	@echo "  lint            - Run linting with flake8"
+	@echo "  version         - Show current versions (requires git tags)"
 	@echo "  clean           - Clean build artifacts"
 
 # Install both libraries in development mode
@@ -34,6 +35,10 @@ test-core:
 test-public-health:
 	pytest libs/public_health/tests -v
 
+# Run integration tests
+test-integration:
+	python -c "from sim_sci_test_monorepo.core.utils import hello_core, CoreUtility; from sim_sci_test_monorepo.public_health.models import hello_public_health, HealthModel; print('✓ Integration test passed')"
+
 # Format code
 format:
 	black libs/
@@ -42,6 +47,23 @@ format:
 # Lint code
 lint:
 	flake8 libs/
+
+# Show current versions
+version:
+	@echo "Checking versions with setuptools_scm..."
+	@cd libs/core && python -c "import setuptools_scm; print('Core version:', setuptools_scm.get_version())" 2>/dev/null || echo "Core: setuptools_scm not available, install with 'make install-dev'"
+	@cd libs/public_health && python -c "import setuptools_scm; print('Public Health version:', setuptools_scm.get_version())" 2>/dev/null || echo "Public Health: setuptools_scm not available, install with 'make install-dev'"
+
+# Build both packages
+build: build-core build-public-health
+
+# Build core package only
+build-core:
+	cd libs/core && python -m build
+
+# Build public health package only
+build-public-health:
+	cd libs/public_health && python -m build
 
 # Clean build artifacts
 clean:

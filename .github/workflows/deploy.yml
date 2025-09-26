@@ -1,0 +1,143 @@
+name: deploy
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Package to deploy'
+        required: true
+        default: 'core'
+        type: choice
+        options:
+        - core
+        - public_health
+
+jobs:
+  deploy-core:
+    if: ${{ (github.event_name == 'release' && contains(github.event.release.tag_name, 'core-v')) || github.event.inputs.package == 'core' }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Needed for setuptools_scm
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      - name: Install dependencies
+        run: |
+          python --version
+          uv pip install --system setuptools wheel build
+      - name: Test core
+        run: |
+          uv pip install --system -e "libs/core[dev]"
+          pytest libs/core/tests --verbose
+      - name: Build core
+        run: |
+          cd libs/core
+          python -m build
+      - name: Publish core to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: libs/core/dist/
+      - name: Send mail on failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.NOTIFY_EMAIL }}
+          password: ${{ secrets.NOTIFY_PASSWORD }}
+          subject: Core deployment of ${{ github.repository }} has failed
+          body: Core package deployment in workflow ${{ github.workflow }} of ${{ github.repository }} has failed
+          to: uw_ihme_simulationscience@uw.edu
+          from: SimSci Notifications
+
+  deploy-public-health:
+    if: ${{ (github.event_name == 'release' && contains(github.event.release.tag_name, 'public-health-v')) || github.event.inputs.package == 'public_health' }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Needed for setuptools_scm
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      - name: Install dependencies
+        run: |
+          python --version
+          uv pip install --system setuptools wheel build
+      - name: Install core dependency
+        run: |
+          # Install core from PyPI (just published) or locally for testing
+          if [ "${{ github.event_name }}" == "release" ]; then
+            # Wait a moment for PyPI to propagate the core package
+            sleep 30
+            uv pip install --system sim-sci-test-monorepo-core
+          else
+            uv pip install --system -e libs/core
+          fi
+      - name: Test public health
+        run: |
+          uv pip install --system -e "libs/public_health[dev]"
+          pytest libs/public_health/tests --verbose
+      - name: Build public health
+        run: |
+          cd libs/public_health
+          python -m build
+      - name: Publish public health to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: libs/public_health/dist/
+      - name: Send mail on failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.NOTIFY_EMAIL }}
+          password: ${{ secrets.NOTIFY_PASSWORD }}
+          subject: Public Health deployment of ${{ github.repository }} has failed
+          body: Public Health package deployment in workflow ${{ github.workflow }} of ${{ github.repository }} has failed
+          to: uw_ihme_simulationscience@uw.edu
+          from: SimSci Notifications
+
+  notify-success:
+    if: ${{ always() && (needs.deploy-core.result == 'success' || needs.deploy-public-health.result == 'success') }}
+    needs: [deploy-core, deploy-public-health]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send success notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.NOTIFY_EMAIL }}
+          password: ${{ secrets.NOTIFY_PASSWORD }}
+          subject: Successful deployment of ${{ github.repository }}
+          body: |
+            Deployment workflow ${{ github.workflow }} of ${{ github.repository }} completed successfully!
+            
+            Core deployment: ${{ needs.deploy-core.result }}
+            Public Health deployment: ${{ needs.deploy-public-health.result }}
+            
+            Packages are now available on PyPI:
+            - sim-sci-test-monorepo-core
+            - sim-sci-test-monorepo-public-health
+          to: uw_ihme_simulationscience@uw.edu
+          from: SimSci Notifications
