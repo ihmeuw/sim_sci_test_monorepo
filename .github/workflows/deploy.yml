@@ -37,14 +37,43 @@ jobs:
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
           echo "Available core tags:"
           git tag --list "core-v*" | head -10
+          echo "Current git describe for core tags:"
+          git describe --tags --match "core-v*" || echo "No core tags found"
+          echo "Git log --oneline (last 5):"
+          git log --oneline -5
       - name: Install dependencies
         run: |
           python --version
           uv pip install --system setuptools wheel build
+      - name: Debug setuptools_scm for core
+        run: |
+          cd libs/core
+          python -c "
+          import setuptools_scm
+          try:
+              version = setuptools_scm.get_version()
+              print(f'setuptools_scm detected version: {version}')
+          except Exception as e:
+              print(f'setuptools_scm error: {e}')
+              import traceback
+              traceback.print_exc()
+          "
       - name: Build core
         run: |
           cd libs/core
-          python -m build
+          # Try auto-detection first, fall back to tag-based version if needed
+          if python -c "import setuptools_scm; setuptools_scm.get_version()" > /dev/null 2>&1; then
+            echo "Using setuptools_scm auto-detected version"
+            python -m build
+          elif [[ "${{ github.event_name }}" == "release" && "${{ github.event.release.tag_name }}" == core-v* ]]; then
+            TAG_NAME="${{ github.event.release.tag_name }}"
+            VERSION="${TAG_NAME#core-v}"
+            echo "Auto-detection failed, using explicit version from tag: $VERSION"
+            SETUPTOOLS_SCM_PRETEND_VERSION_FOR_SIM_SCI_TEST_MONOREPO_CORE="$VERSION" python -m build
+          else
+            echo "No version could be determined, trying build anyway"
+            python -m build
+          fi
       - name: Publish core to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
@@ -84,14 +113,43 @@ jobs:
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
           echo "Available public health tags:"
           git tag --list "public-health-v*" | head -10
+          echo "Current git describe for public health tags:"
+          git describe --tags --match "public-health-v*" || echo "No public health tags found"
+          echo "Git log --oneline (last 5):"
+          git log --oneline -5
       - name: Install dependencies
         run: |
           python --version
           uv pip install --system setuptools wheel build
+      - name: Debug setuptools_scm for public health
+        run: |
+          cd libs/public_health
+          python -c "
+          import setuptools_scm
+          try:
+              version = setuptools_scm.get_version()
+              print(f'setuptools_scm detected version: {version}')
+          except Exception as e:
+              print(f'setuptools_scm error: {e}')
+              import traceback
+              traceback.print_exc()
+          "
       - name: Build public health
         run: |
           cd libs/public_health
-          python -m build
+          # Try auto-detection first, fall back to tag-based version if needed
+          if python -c "import setuptools_scm; setuptools_scm.get_version()" > /dev/null 2>&1; then
+            echo "Using setuptools_scm auto-detected version"
+            python -m build
+          elif [[ "${{ github.event_name }}" == "release" && "${{ github.event.release.tag_name }}" == public-health-v* ]]; then
+            TAG_NAME="${{ github.event.release.tag_name }}"
+            VERSION="${TAG_NAME#public-health-v}"
+            echo "Auto-detection failed, using explicit version from tag: $VERSION"
+            SETUPTOOLS_SCM_PRETEND_VERSION_FOR_SIM_SCI_TEST_MONOREPO_PUBLIC_HEALTH="$VERSION" python -m build
+          else
+            echo "No version could be determined, trying build anyway"
+            python -m build
+          fi
       - name: Publish public health to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
