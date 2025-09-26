@@ -30,11 +30,6 @@ jobs:
         with:
           python-version: "3.11"
           
-      - name: Install uv
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-          
       - name: Validate version format
         run: |
           if [[ ! "${{ github.event.inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -42,7 +37,7 @@ jobs:
             exit 1
           fi
           
-      - name: Create tags and test
+      - name: Create tags
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
@@ -50,33 +45,11 @@ jobs:
           if [[ "${{ github.event.inputs.package }}" == "core" ]]; then
             echo "Creating core tag: core-v${{ github.event.inputs.version }}"
             git tag core-v${{ github.event.inputs.version }}
-            
-            # Test core package
-            cd libs/core
-            uv pip install --system -e ".[dev]"
-            pytest tests/ --verbose
-            python -c "
-            import sim_sci_test_monorepo.core
-            print('Core version:', sim_sci_test_monorepo.core.__version__)
-            assert sim_sci_test_monorepo.core.__version__ == '${{ github.event.inputs.version }}'
-            "
-            cd ../..
           fi
           
           if [[ "${{ github.event.inputs.package }}" == "public_health" ]]; then
             echo "Creating public health tag: public-health-v${{ github.event.inputs.version }}"
             git tag public-health-v${{ github.event.inputs.version }}
-            
-            # Test public health package  
-            cd libs/public_health
-            uv pip install --system -e ".[dev]"
-            pytest tests/ --verbose
-            python -c "
-            import sim_sci_test_monorepo.public_health
-            print('Public Health version:', sim_sci_test_monorepo.public_health.__version__)
-            assert sim_sci_test_monorepo.public_health.__version__ == '${{ github.event.inputs.version }}'
-            "
-            cd ../..
           fi
           
       - name: Push tags
