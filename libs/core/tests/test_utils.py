@@ -1,0 +1,19 @@
+"""
+Tests for core utils
+"""
+
+import pytest
+from sim_sci_test_monorepo.core.utils import hello_core, CoreUtility
+
+
+def test_hello_core():
+    """Test the hello_core function."""
+    result = hello_core()
+    assert result == "Hello from sim_sci_test_monorepo.core!"
+
+
+def test_core_utility():
+    """Test the CoreUtility class."""
+    utility = CoreUtility("test")
+    assert utility.name == "test"
+    assert utility.greet() == "Core utility test is ready!"
