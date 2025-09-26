@@ -44,36 +44,11 @@ jobs:
       - name: Install dependencies
         run: |
           python --version
-          uv pip install --system setuptools wheel build setuptools_scm
-      - name: Debug setuptools_scm for core
-        run: |
-          cd libs/core
-          python -c "
-          import setuptools_scm
-          try:
-              version = setuptools_scm.get_version()
-              print(f'setuptools_scm detected version: {version}')
-          except Exception as e:
-              print(f'setuptools_scm error: {e}')
-              import traceback
-              traceback.print_exc()
-          "
+          uv pip install --system setuptools wheel build
       - name: Build core
         run: |
           cd libs/core
-          # Try auto-detection first, fall back to tag-based version if needed
-          if python -c "import setuptools_scm; setuptools_scm.get_version()" > /dev/null 2>&1; then
-            echo "Using setuptools_scm auto-detected version"
-            python -m build
-          elif [[ "${{ github.event_name }}" == "release" && "${{ github.event.release.tag_name }}" == core-v* ]]; then
-            TAG_NAME="${{ github.event.release.tag_name }}"
-            VERSION="${TAG_NAME#core-v}"
-            echo "Auto-detection failed, using explicit version from tag: $VERSION"
-            SETUPTOOLS_SCM_PRETEND_VERSION_FOR_SIM_SCI_TEST_MONOREPO_CORE="$VERSION" python -m build
-          else
-            echo "No version could be determined, trying build anyway"
-            python -m build
-          fi
+          python -m build
       - name: Publish core to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
@@ -108,36 +83,11 @@ jobs:
       - name: Install dependencies
         run: |
           python --version
-          uv pip install --system setuptools wheel build setuptools_scm
-      - name: Debug setuptools_scm for public health
-        run: |
-          cd libs/public_health
-          python -c "
-          import setuptools_scm
-          try:
-              version = setuptools_scm.get_version()
-              print(f'setuptools_scm detected version: {version}')
-          except Exception as e:
-              print(f'setuptools_scm error: {e}')
-              import traceback
-              traceback.print_exc()
-          "
+          uv pip install --system setuptools wheel build
       - name: Build public health
         run: |
           cd libs/public_health
-          # Try auto-detection first, fall back to tag-based version if needed
-          if python -c "import setuptools_scm; setuptools_scm.get_version()" > /dev/null 2>&1; then
-            echo "Using setuptools_scm auto-detected version"
-            python -m build
-          elif [[ "${{ github.event_name }}" == "release" && "${{ github.event.release.tag_name }}" == public-health-v* ]]; then
-            TAG_NAME="${{ github.event.release.tag_name }}"
-            VERSION="${TAG_NAME#public-health-v}"
-            echo "Auto-detection failed, using explicit version from tag: $VERSION"
-            SETUPTOOLS_SCM_PRETEND_VERSION_FOR_SIM_SCI_TEST_MONOREPO_PUBLIC_HEALTH="$VERSION" python -m build
-          else
-            echo "No version could be determined, trying build anyway"
-            python -m build
-          fi
+          python -m build
       - name: Publish public health to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
