@@ -15,8 +15,7 @@ on:
         - public_health
 
 jobs:
-  deploy-core:
-    if: ${{ (github.event_name == 'release' && contains(github.event.release.tag_name, 'core-v')) || github.event.inputs.package == 'core' }}
+  deploy:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -82,42 +81,3 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: ${{ env.PACKAGE_PATH }}/dist/
-
-  deploy-public-health:
-    if: ${{ (github.event_name == 'release' && contains(github.event.release.tag_name, 'public-health-v')) || github.event.inputs.package == 'public_health' }}
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Needed for setuptools_scm
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
-      - name: Install uv
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-      - name: Fetch git tags for public health
-        run: |
-          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-          echo "Available public health tags:"
-          git tag --list "public-health-v*" | head -10
-          echo "Current git describe for public health tags:"
-          git describe --tags --match "public-health-v*" || echo "No public health tags found"
-          echo "Git log --oneline (last 5):"
-          git log --oneline -5
-      - name: Install dependencies
-        run: |
-          python --version
-          uv pip install --system setuptools wheel build
-      - name: Build public health
-        run: |
-          cd libs/public_health
-          python -m build
-      - name: Publish public health to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: libs/public_health/dist/
