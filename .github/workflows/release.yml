@@ -37,64 +37,42 @@ jobs:
             exit 1
           fi
           
-      - name: Create tags
+      - name: Set package variables
+        run: |
+          PACKAGE="${{ github.event.inputs.package }}"
+          VERSION="${{ github.event.inputs.version }}"
+          
+          # Convert package name for different formats
+          PACKAGE_HYPHEN=$(echo "$PACKAGE" | tr '_' '-')  # public_health -> public-health
+          PACKAGE_TITLE=$(echo "$PACKAGE" | sed 's/_/ /g' | sed 's/\b\w/\u&/g')  # public_health -> Public Health
+          
+          echo "TAG_NAME=${PACKAGE_HYPHEN}-v${VERSION}" >> $GITHUB_ENV
+          echo "RELEASE_NAME=${PACKAGE_TITLE} Release v${VERSION}" >> $GITHUB_ENV
+          echo "PYPI_NAME=sim-sci-test-monorepo-${PACKAGE_HYPHEN}" >> $GITHUB_ENV
+          
+      - name: Create and push tag
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           
-          if [[ "${{ github.event.inputs.package }}" == "core" ]]; then
-            echo "Creating core tag: core-v${{ github.event.inputs.version }}"
-            git tag core-v${{ github.event.inputs.version }}
-          fi
+          echo "Creating tag: $TAG_NAME"
+          git tag $TAG_NAME
+          git push origin $TAG_NAME
           
-          if [[ "${{ github.event.inputs.package }}" == "public_health" ]]; then
-            echo "Creating public health tag: public-health-v${{ github.event.inputs.version }}"
-            git tag public-health-v${{ github.event.inputs.version }}
-          fi
-          
-      - name: Push tags
-        run: |
-          if [[ "${{ github.event.inputs.package }}" == "core" ]]; then
-            git push origin core-v${{ github.event.inputs.version }}
-          fi
-          if [[ "${{ github.event.inputs.package }}" == "public_health" ]]; then
-            git push origin public-health-v${{ github.event.inputs.version }}
-          fi
-          
-      - name: Create Release for Core
-        if: ${{ github.event.inputs.package == 'core' }}
+      - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: core-v${{ github.event.inputs.version }}
-          name: Core Release v${{ github.event.inputs.version }}
+          tag_name: ${{ env.TAG_NAME }}
+          name: ${{ env.RELEASE_NAME }}
           body: |
-            Core Release v${{ github.event.inputs.version }}
+            ${{ env.RELEASE_NAME }}
             
             ## Package Released
-            - sim-sci-test-monorepo-core
+            - ${{ env.PYPI_NAME }}
             
             ## Installation
             ```bash
-            uv pip install sim-sci-test-monorepo-core==${{ github.event.inputs.version }}
-            ```
-          draft: false
-          prerelease: false
-          
-      - name: Create Release for Public Health
-        if: ${{ github.event.inputs.package == 'public_health' }}
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: public-health-v${{ github.event.inputs.version }}
-          name: Public Health Release v${{ github.event.inputs.version }}
-          body: |
-            Public Health Release v${{ github.event.inputs.version }}
-            
-            ## Package Released
-            - sim-sci-test-monorepo-public-health
-            
-            ## Installation
-            ```bash
-            uv pip install sim-sci-test-monorepo-public-health==${{ github.event.inputs.version }}
+            uv pip install ${{ env.PYPI_NAME }}==${{ github.event.inputs.version }}
             ```
           draft: false
           prerelease: false
