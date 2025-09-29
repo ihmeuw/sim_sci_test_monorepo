@@ -21,6 +21,35 @@ jobs:
     permissions:
       id-token: write
     steps:
+      - name: Set package variables
+        run: |
+          # Determine package name from release tag or workflow dispatch input
+          if [ "${{ github.event_name }}" = "release" ]; then
+            if [[ "${{ github.event.release.tag_name }}" == *"core-v"* ]]; then
+              PACKAGE_NAME="core"
+              PACKAGE_PATH="libs/core"
+              TAG_PATTERN="core-v"
+            elif [[ "${{ github.event.release.tag_name }}" == *"public-health-v"* ]]; then
+              PACKAGE_NAME="public_health"
+              PACKAGE_PATH="libs/public_health"
+              TAG_PATTERN="public-health-v"
+            fi
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            PACKAGE_NAME="${{ github.event.inputs.package }}"
+            if [ "$PACKAGE_NAME" = "core" ]; then
+              PACKAGE_PATH="libs/core"
+              TAG_PATTERN="core-v"
+            elif [ "$PACKAGE_NAME" = "public_health" ]; then
+              PACKAGE_PATH="libs/public_health"
+              TAG_PATTERN="public-health-v"
+            fi
+          fi
+          
+          echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_ENV
+          echo "PACKAGE_PATH=$PACKAGE_PATH" >> $GITHUB_ENV
+          echo "TAG_PATTERN=$TAG_PATTERN" >> $GITHUB_ENV
+          echo "Deploying package: $PACKAGE_NAME from path: $PACKAGE_PATH"
+      
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Needed for setuptools_scm
@@ -32,27 +61,27 @@ jobs:
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-      - name: Fetch git tags for core
+      - name: Fetch git tags for ${PACKAGE_NAME}
         run: |
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-          echo "Available core tags:"
-          git tag --list "core-v*" | head -10
-          echo "Current git describe for core tags:"
-          git describe --tags --match "core-v*" || echo "No core tags found"
+          echo "Available ${PACKAGE_NAME} tags:"
+          git tag --list "${TAG_PATTERN}*" | head -10
+          echo "Current git describe for ${PACKAGE_NAME} tags:"
+          git describe --tags --match "${TAG_PATTERN}*" || echo "No ${PACKAGE_NAME} tags found"
           echo "Git log --oneline (last 5):"
           git log --oneline -5
       - name: Install dependencies
         run: |
           python --version
           uv pip install --system setuptools wheel build
-      - name: Build core
+      - name: Build ${PACKAGE_NAME}
         run: |
-          cd libs/core
+          cd ${PACKAGE_PATH}
           python -m build
-      - name: Publish core to PyPI
+      - name: Publish ${PACKAGE_NAME} to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: libs/core/dist/
+          packages-dir: ${{ env.PACKAGE_PATH }}/dist/
 
   deploy-public-health:
     if: ${{ (github.event_name == 'release' && contains(github.event.release.tag_name, 'public-health-v')) || github.event.inputs.package == 'public_health' }}
