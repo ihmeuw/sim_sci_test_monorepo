@@ -24,30 +24,24 @@ jobs:
         run: |
           # Determine package name from release tag or workflow dispatch input
           if [ "${{ github.event_name }}" = "release" ]; then
-            if [[ "${{ github.event.release.tag_name }}" == *"core-v"* ]]; then
-              PACKAGE_NAME="core"
-              PACKAGE_PATH="libs/core"
-              TAG_PATTERN="core-v"
-            elif [[ "${{ github.event.release.tag_name }}" == *"public-health-v"* ]]; then
-              PACKAGE_NAME="public_health"
-              PACKAGE_PATH="libs/public_health"
-              TAG_PATTERN="public-health-v"
-            fi
-          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # Extract package name from tag by stripping version (core-v1.0.0 -> core, public-health-v1.0.0 -> public-health)
+            TAG_NAME="${{ github.event.release.tag_name }}"
+            # Remove -v* suffix to get package name, then convert hyphens to underscores for public_health
+            PACKAGE_RAW="${TAG_NAME%-v*}"
+            PACKAGE_NAME="${PACKAGE_RAW//-/_}"
+          else
+            # Use input directly for workflow_dispatch
             PACKAGE_NAME="${{ github.event.inputs.package }}"
-            if [ "$PACKAGE_NAME" = "core" ]; then
-              PACKAGE_PATH="libs/core"
-              TAG_PATTERN="core-v"
-            elif [ "$PACKAGE_NAME" = "public_health" ]; then
-              PACKAGE_PATH="libs/public_health"
-              TAG_PATTERN="public-health-v"
-            fi
           fi
+          
+          # Transform package name to path and tag pattern using string manipulation
+          PACKAGE_PATH="libs/${PACKAGE_NAME}"
+          TAG_PATTERN="${PACKAGE_NAME//_/-}-v"  # public_health -> public-health-v, core -> core-v
           
           echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_ENV
           echo "PACKAGE_PATH=$PACKAGE_PATH" >> $GITHUB_ENV
           echo "TAG_PATTERN=$TAG_PATTERN" >> $GITHUB_ENV
-          echo "Deploying package: $PACKAGE_NAME from path: $PACKAGE_PATH"
+          echo "Deploying package: $PACKAGE_NAME from path: $PACKAGE_PATH with tag pattern: $TAG_PATTERN"
       
       - uses: actions/checkout@v4
         with:
