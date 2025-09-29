@@ -14,7 +14,7 @@ on:
         type: choice
         options:
         - core
-        - public_health
+        - public-health
 
 jobs:
   create-release:
@@ -43,12 +43,11 @@ jobs:
           VERSION="${{ github.event.inputs.version }}"
           
           # Convert package name for different formats
-          PACKAGE_HYPHEN=$(echo "$PACKAGE" | tr '_' '-')  # public_health -> public-health
-          PACKAGE_TITLE=$(echo "$PACKAGE" | sed 's/_/ /g' | sed 's/\b\w/\u&/g')  # public_health -> Public Health
+          PACKAGE_TITLE=$(echo "$PACKAGE" | sed 's/-/ /g' | sed 's/\b\w/\u&/g')  # public-health -> Public Health
           
-          echo "TAG_NAME=${PACKAGE_HYPHEN}-v${VERSION}" >> $GITHUB_ENV
+          echo "TAG_NAME=${PACKAGE}-v${VERSION}" >> $GITHUB_ENV
           echo "RELEASE_NAME=${PACKAGE_TITLE} Release v${VERSION}" >> $GITHUB_ENV
-          echo "PYPI_NAME=sim-sci-test-monorepo-${PACKAGE_HYPHEN}" >> $GITHUB_ENV
+          echo "PYPI_NAME=sim-sci-test-monorepo-${PACKAGE}" >> $GITHUB_ENV
           
       - name: Create and push tag
         run: |
