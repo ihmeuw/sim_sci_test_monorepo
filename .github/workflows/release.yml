@@ -10,7 +10,6 @@ on:
       package:
         description: 'Package to release'
         required: true
-        default: 'core'
         type: choice
         options:
         - core
