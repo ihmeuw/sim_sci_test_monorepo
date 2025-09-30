@@ -3,7 +3,8 @@ Tests for public health models
 """
 
 import pytest
-from sim_sci_test_monorepo.public_health.models import hello_public_health, HealthModel
+
+from sim_sci_test_monorepo.public_health.models import HealthModel, hello_public_health
 
 
 def test_hello_public_health():

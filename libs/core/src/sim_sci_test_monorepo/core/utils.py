@@ -10,9 +10,9 @@ def hello_core():
 
 class CoreUtility:
     """An example core utility class."""
-    
+
     def __init__(self, name: str):
         self.name = name
-    
+
     def greet(self) -> str:
         return f"Core utility {self.name} is ready!"

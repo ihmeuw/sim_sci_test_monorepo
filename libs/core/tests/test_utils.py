@@ -3,7 +3,8 @@ Tests for core utils
 """
 
 import pytest
-from sim_sci_test_monorepo.core.utils import hello_core, CoreUtility
+
+from sim_sci_test_monorepo.core.utils import CoreUtility, hello_core
 
 
 def test_hello_core():

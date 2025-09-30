@@ -12,10 +12,10 @@ def hello_public_health():
 
 class HealthModel(CoreUtility):
     """An example health model that extends core functionality."""
-    
+
     def __init__(self, name: str, population_size: int):
         super().__init__(name)
         self.population_size = population_size
-    
+
     def simulate(self) -> str:
         return f"Simulating {self.name} for population of {self.population_size}"
