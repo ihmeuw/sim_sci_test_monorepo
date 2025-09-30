@@ -17,7 +17,9 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
-dependencies = []
+dependencies = [
+    "vivarium_build_utils>=2.0.1,<3.0.0",
+]
 
 [project.optional-dependencies]
 dev = [
