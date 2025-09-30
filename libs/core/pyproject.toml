@@ -38,17 +38,37 @@ where = ["src"]
 [tool.setuptools.package-dir]
 "" = "src"
 
-[tool.black]
-line-length = 88
-target-version = ['py310']
-
-[tool.isort]
-profile = "black"
-line_length = 88
-
 [tool.setuptools_scm]
 write_to = "src/sim_sci_test_monorepo/core/_version.py"
 version_scheme = "python-simplified-semver"
 local_scheme = "no-local-version"
 tag_regex = "^core-v(?P<version>[^\\+]+)(?P<suffix>.*)?$"
 search_parent_directories = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests/"]
+
+[tool.black]
+line-length = 94
+target-version = ['py310']
+
+[tool.isort]
+profile = "black"
+line_length = 94
+multi_line_output = 3 # Vertical Hanging Indent, see https://pypi.org/project/isort/
+
+[tool.mypy]
+# This is the global mypy configuration.
+strict = true  # See all the enabled flags `mypy --help | grep -A 10 'Strict mode'`
+disallow_any_unimported = false
+implicit_reexport = true
+exclude = [
+    'build',
+]
+
+disable_error_code = []
+
+# handle mypy errors when 3rd party packages are not typed.
+[[tool.mypy.overrides]]
+module = []
+ignore_missing_imports = true
