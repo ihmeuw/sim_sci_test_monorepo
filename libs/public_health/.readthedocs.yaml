@@ -13,7 +13,6 @@ build:
       - pip install uv
     post_install:
       # Install the core dependency first, then this package with docs dependencies
-      - uv pip install -e ../core
       - uv pip install -e .[docs]
 
 sphinx:
