@@ -21,16 +21,19 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=7.0",
-    "black",
-    "isort",
-    "flake8",
-]
 docs = [
     "sphinx>=5.0",
     "sphinx-rtd-theme", 
     "sphinx-autodoc-typehints",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov",
+    "pytest-mock",
+    "black",
+    "isort",
+    "flake8",
+    "sim-sci-test-monorepo-public-health[docs]",
 ]
 
 [project.urls]
@@ -58,11 +61,13 @@ testpaths = ["tests/"]
 [tool.black]
 line-length = 94
 target-version = ['py310']
+exclude = '''.*_version\.py'''
 
 [tool.isort]
 profile = "black"
 line_length = 94
 multi_line_output = 3 # Vertical Hanging Indent, see https://pypi.org/project/isort/
+skip_glob = ["*/_version.py"]
 
 [tool.mypy]
 # This is the global mypy configuration.
