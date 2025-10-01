@@ -50,6 +50,7 @@ version_scheme = "python-simplified-semver"
 local_scheme = "no-local-version"
 tag_regex = "^public-health-v(?P<version>[^\\+]+)(?P<suffix>.*)?$"
 search_parent_directories = true
+fallback_version = "0.1.0.dev0"
 
 [tool.pytest.ini_options]
 testpaths = ["tests/"]
