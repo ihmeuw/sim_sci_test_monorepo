@@ -114,7 +114,6 @@ venv.bak/
 notebooks/
 
 # Version files created by setuptools_scm
-src/vivarium/_version.py
 libs/*/src/sim_sci_test_monorepo/*/_version.py
 
 # macOS
