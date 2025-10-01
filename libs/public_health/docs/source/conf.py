@@ -115,6 +115,7 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/", None),
     "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
+    "sim_sci_test_monorepo.core": ("https://sim-sci-test-monorepo-core.readthedocs.io/en/latest/", None),
 }
 
 # -- Autodoc configuration ------------------------------------------------
