@@ -16,7 +16,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
 ]
 dependencies = [
-    "vivarium_build_utils @ git+https://github.com/ihmeuw/vivarium_build_utils.git@remove-setup-py",
+    "vivarium_build_utils",
 ]
 
 [project.optional-dependencies]

@@ -17,7 +17,7 @@ classifiers = [
 ]
 dependencies = [
     "sim-sci-test-monorepo-core",
-    "vivarium_build_utils @ git+https://github.com/ihmeuw/vivarium_build_utils.git@remove-setup-py",
+    "vivarium_build_utils",
 ]
 
 [project.optional-dependencies]
