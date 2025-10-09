@@ -1,3 +1,6 @@
+import java.nio.file.Path
+import java.nio.file.Paths
+
 /**
  * Provision items on Jenkins.
  * @param rootFolderPath A root folder path.

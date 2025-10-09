@@ -1,3 +1,6 @@
+import java.nio.file.Path
+import java.nio.file.Paths
+
 /**
  * Get all ancestor folders paths.
  * <pre>
