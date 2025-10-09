@@ -39,8 +39,10 @@ def generateFolders(List<Path> jenkinsfilePaths, Path rootFolder) {
 def generateMultibranchPipelines(List<Path> jenkinsfilePaths, Path rootFolder, String repositoryURL) {
     // The following variables are needed to configure the branch source for GitHub. Configuration for other version
     // control providers vary.
-    def matcher = repositoryURL =~ /.+[\/:](?<owner>[^\/]+)\/(?<repository>[^\/]+)\.git$/
-    matcher.matches()
+    def matcher = repositoryURL =~ /.+[\/:](?<owner>[^\/]+)\/(?<repository>[^\/]+)(?:\.git)?$/
+    if (!matcher.matches()) {
+        throw new Exception("Could not parse repository URL: ${repositoryURL}")
+    }
     String repositoryOwner = matcher.group('owner')
     String repositoryName = matcher.group('repository')
 
@@ -68,7 +70,7 @@ def generateMultibranchPipelines(List<Path> jenkinsfilePaths, Path rootFolder, S
                             configuredByUrl(false)
 
                             // Make sure to properly set this.
-                            credentialsId('github-token')
+                            credentialsId('fad62062-b1f4-447b-997f-005d6b1ea41e')
 
                             traits {
                                 // Depending on your preferences and root pipeline configuration, you can decide to
