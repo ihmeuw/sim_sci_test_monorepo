@@ -1,6 +1,7 @@
 import java.nio.file.Path
 import java.nio.file.Paths
 import hudson.model.*
+import com.cloudbees.groovy.cps.NonCPS
 
 /**
  * Provision items on Jenkins.
