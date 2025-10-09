@@ -1,5 +1,6 @@
 import java.nio.file.Path
 import java.nio.file.Paths
+import hudson.model.NonCPS
 
 /**
  * Provision items on Jenkins.
