@@ -1,5 +1,5 @@
 // Load shared library from the same repository
-library identifier: 'local-monorepo-lib@main', 
+library identifier: 'sim_sci_test_monorepo@main', 
         retriever: modernSCM([
             $class: 'GitSCMSource',
             remote: env.GIT_URL,
