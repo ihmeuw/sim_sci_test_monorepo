@@ -15,7 +15,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
-dependencies = []
+dependencies = ["vivarium-build-utils @ git+https://github.com/ihmeuw/vivarium_build_utils.git@main"]
 
 [project.optional-dependencies]
 core = ["sim-sci-test-monorepo-core"]
