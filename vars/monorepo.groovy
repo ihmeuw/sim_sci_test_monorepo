@@ -43,12 +43,15 @@ String getBaselineRevision() {
     // Depending on your seed pipeline configuration and preferences, you can set the baseline revision to a target
     // branch, e.g. the repository's default branch or even `env.CHANGE_TARGET` if Jenkins is configured to discover
     // pull requests.
-    [env.GIT_PREVIOUS_SUCCESSFUL_COMMIT, env.GIT_PREVIOUS_COMMIT]
+    def baseline = [env.GIT_PREVIOUS_SUCCESSFUL_COMMIT, env.GIT_PREVIOUS_COMMIT]
     // Look for the first existing existing revision. Commits can be removed (e.g. with a `git push --force`), so a
     // previous build revision may not exist anymore.
             .find { revision ->
-                revision != null && sh(script: "git rev-parse --quiet --verify $revision", returnStdout: true) == 0
+                revision != null && sh(script: "git rev-parse --quiet --verify $revision", returnStatus: true) == 0
             } ?: 'HEAD^'
+    
+    echo "Using baseline revision: ${baseline}"
+    return baseline
 }
 
 /**
@@ -61,11 +64,13 @@ List<String> getChangedDirectories(String baselineRevision) {
     
     // Jenkins native interface to retrieve changes, i.e. `currentBuild.changeSets`, returns an empty list for newly
     // created branches (see https://issues.jenkins.io/browse/JENKINS-14138), so let's use `git` instead.
-    sh(
+    def result = sh(
             label: 'List changed directories',
-            script: "git diff --name-only $baselineRevision | xargs -L1 dirname | uniq",
+            script: "git diff --name-only ${baselineRevision} | xargs -L1 dirname | uniq || echo ''",
             returnStdout: true,
-    ).split().toList()
+    ).trim()
+    
+    return result ? result.split().toList() : []
 }
 
 /**
@@ -75,7 +80,7 @@ List<String> getChangedDirectories(String baselineRevision) {
  * @return A list of Pipeline names, relative to the repository root.
  */
 // `java.nio.file.Path(s)` instances are not serializable, so we have to add the following annotation.
-//@NonCPS
+@NonCPS
 static List<String> findRelevantMultibranchPipelines(List<String> changedFilesPathStr, List<String> jenkinsfilePathsStr) {
     List<Path> changedFilesPath = changedFilesPathStr.collect { Paths.get(it) }
     List<Path> jenkinsfilePaths = jenkinsfilePathsStr.collect { Paths.get(it) }
@@ -93,7 +98,9 @@ static List<String> findRelevantMultibranchPipelines(List<String> changedFilesPa
  * @return The list of Multibranch Pipelines to run relative to the repository root.
  */
 List<String> findMultibranchPipelinesToRun(List<String> jenkinsfilePaths) {
-    findRelevantMultibranchPipelines(getChangedDirectories(baselineRevision), jenkinsfilePaths)
+    String baselineRevision = getBaselineRevision()
+    List<String> changedDirectories = getChangedDirectories(baselineRevision)
+    return findRelevantMultibranchPipelines(changedDirectories, jenkinsfilePaths)
 }
 
 /**
