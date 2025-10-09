@@ -12,13 +12,14 @@ pipeline {
         stage('Multi-Multibranch Pipeline') {
             steps {
                 script {
-                    // Define a logging function that will appear in console
-                    def log = { message ->
-                        sh "echo '[MONOREPO] ${message}'"
-                    }
+                    echo "=== STARTING MULTI-MULTIBRANCH PIPELINE ==="
+                    echo "Job Name: ${env.JOB_NAME}"
+                    echo "Repository URL: ${env.GIT_URL}"
+                    echo "Branch: ${env.BRANCH_NAME ?: env.GIT_BRANCH}"
                     
-                    // Pass the logging function to the shared library
-                    monorepo([logger: log])
+                    monorepo()
+                    
+                    echo "=== MULTI-MULTIBRANCH PIPELINE COMPLETE ==="
                 }
             }
         }
