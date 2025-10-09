@@ -117,9 +117,13 @@ def runPipelines(String rootFolderPath, List<String> multibranchPipelinesToRun) 
  */
 def call(Map config = [:]){
     String repositoryName = env.JOB_NAME.split('/')[1]
+    println("Provisioning items for the job: $env.JOB_NAME")
     String rootFolderPath = "Generated/$repositoryName"
+    println("Provisioning items under the root folder: $rootFolderPath for the repository: $repositoryName")
 
     List<String> jenkinsfilePaths = provisionItems(rootFolderPath, env.GIT_URL)
+    println("Provisioned items for Jenkinsfiles:\n${jenkinsfilePaths.join('\n')}")
     List<String> multibranchPipelinesToRun = findMultibranchPipelinesToRun(jenkinsfilePaths)
+    println("Multibranch Pipelines to run:\n${multibranchPipelinesToRun.join('\n')}")
     runPipelines(rootFolderPath, multibranchPipelinesToRun)
 }
