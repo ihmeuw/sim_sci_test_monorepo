@@ -3,10 +3,17 @@
 pipeline {
     agent any
     
+    options {
+        timestamps()
+        ansiColor('xterm')
+    }
+    
     stages {
         stage('Multi-Multibranch Pipeline') {
             steps {
-                monorepo()
+                script {
+                    monorepo()
+                }
             }
         }
     }
