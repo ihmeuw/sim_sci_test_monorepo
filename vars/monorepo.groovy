@@ -1,7 +1,4 @@
-import java.nio.file.Path
-import java.nio.file.Paths
 import hudson.model.*
-import com.cloudbees.groovy.cps.NonCPS
 
 /**
  * Provision items on Jenkins.
@@ -80,17 +77,24 @@ List<String> getChangedDirectories(String baselineRevision) {
  * @param jenkinsfilePathsStr List of Jenkinsfile paths.
  * @return A list of Pipeline names, relative to the repository root.
  */
-// `java.nio.file.Path(s)` instances are not serializable, so we have to add the following annotation.
-@NonCPS
-static List<String> findRelevantMultibranchPipelines(List<String> changedFilesPathStr, List<String> jenkinsfilePathsStr) {
-    List<Path> changedFilesPath = changedFilesPathStr.collect { Paths.get(it) }
-    List<Path> jenkinsfilePaths = jenkinsfilePathsStr.collect { Paths.get(it) }
-
-    changedFilesPath.inject([]) { pipelines, changedFilePath ->
-        def matchingJenkinsfile = jenkinsfilePaths
-                .find { jenkinsfilePath -> changedFilePath.startsWith(jenkinsfilePath.parent) }
-        matchingJenkinsfile != null ? pipelines + [matchingJenkinsfile.parent.toString()] : pipelines
-    }.unique()
+List<String> findRelevantMultibranchPipelines(List<String> changedFilesPathStr, List<String> jenkinsfilePathsStr) {
+    def result = []
+    
+    for (String changedFilePath : changedFilesPathStr) {
+        for (String jenkinsfilePath : jenkinsfilePathsStr) {
+            // Extract the directory containing the Jenkinsfile
+            def jenkinsfileDir = jenkinsfilePath.replaceAll('/Jenkinsfile$', '')
+            
+            // Check if the changed file is in or under the Jenkinsfile directory
+            if (changedFilePath.startsWith(jenkinsfileDir + '/') || changedFilePath == jenkinsfileDir) {
+                if (!result.contains(jenkinsfileDir)) {
+                    result.add(jenkinsfileDir)
+                }
+            }
+        }
+    }
+    
+    return result
 }
 
 /**
