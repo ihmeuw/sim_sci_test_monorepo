@@ -9,21 +9,26 @@ import hudson.model.*
  * @return The list of Jenkinsfile paths for which corresponding items have been provisioned.
  */
 List<String> provisionItems(String rootFolderPath, String repositoryURL) {
+    echo "Discovering Jenkinsfiles with pattern '**/*/Jenkinsfile'..."
+    
     // Find all Jenkinsfiles.
     List<String> jenkinsfilePaths = findFiles(glob: '**/*/Jenkinsfile').collect { it.path }
+    echo "Discovered ${jenkinsfilePaths.size()} Jenkinsfile(s)"
 
+    echo "Executing Job DSL to provision Jenkins items..."
     // Provision folder and Multibranch Pipelines.
     jobDsl(
             scriptText: libraryResource('multiPipelines.groovy'),
             additionalParameters: [
                     jenkinsfilePathsStr: jenkinsfilePaths,
                     rootFolderStr      : rootFolderPath,
-                    repositoryURL      : env.GIT_URL
+                    repositoryURL      : repositoryURL
             ],
             // The following may be set to 'DELETE'. Note that branches will compete to delete and recreate items
             // unless you only provision items from the default branch.
             removedJobAction: 'IGNORE'
     )
+    echo "Job DSL execution completed"
 
     return jenkinsfilePaths
 }
@@ -33,6 +38,8 @@ List<String> provisionItems(String rootFolderPath, String repositoryURL) {
  * @return A revision.
  */
 String getBaselineRevision() {
+    echo "Determining baseline revision for change detection..."
+    
     // Depending on your seed pipeline configuration and preferences, you can set the baseline revision to a target
     // branch, e.g. the repository's default branch or even `env.CHANGE_TARGET` if Jenkins is configured to discover
     // pull requests.
@@ -50,6 +57,8 @@ String getBaselineRevision() {
  * @return The list of directories which include changes.
  */
 List<String> getChangedDirectories(String baselineRevision) {
+    echo "Getting changed directories compared to: ${baselineRevision}"
+    
     // Jenkins native interface to retrieve changes, i.e. `currentBuild.changeSets`, returns an empty list for newly
     // created branches (see https://issues.jenkins.io/browse/JENKINS-14138), so let's use `git` instead.
     sh(
@@ -93,37 +102,82 @@ List<String> findMultibranchPipelinesToRun(List<String> jenkinsfilePaths) {
  * @param multibranchPipelinesToRun The list of Multibranch Pipelines for which a Pipeline is run.
  */
 def runPipelines(String rootFolderPath, List<String> multibranchPipelinesToRun) {
+    if (multibranchPipelinesToRun.isEmpty()) {
+        echo "No pipelines to run - exiting"
+        return
+    }
+    
+    echo "Preparing to run ${multibranchPipelinesToRun.size()} pipeline(s) in parallel"
+    
     parallel(multibranchPipelinesToRun.inject([:]) { stages, multibranchPipelineToRun ->
-        stages + [("Build $multibranchPipelinesToRun"): {
-            def pipelineName = "$rootFolderPath/$multibranchPipelinesToRun/${URLEncoder.encode(env.CHANGE_BRANCH ?: env.GIT_BRANCH, 'UTF-8')}"
+        stages + [("Build ${multibranchPipelineToRun}"): {
+            def branchName = env.CHANGE_BRANCH ?: env.GIT_BRANCH
+            def encodedBranch = URLEncoder.encode(branchName, 'UTF-8')
+            def pipelineName = "${rootFolderPath}/${multibranchPipelineToRun}/${encodedBranch}"
+            
+            echo "Triggering pipeline: ${pipelineName}"
+            
             // For new branches, Jenkins will receive an event from the version control system to provision the
             // corresponding Pipeline under the Multibranch Pipeline item. We have to wait for Jenkins to process the
             // event so a build can be triggered.
+            echo "Waiting for pipeline to become available..."
             timeout(time: 5, unit: 'MINUTES') {
                 waitUntil(initialRecurrencePeriod: 1e3) {
                     def pipeline = Jenkins.instance.getItemByFullName(pipelineName)
-                    pipeline && !pipeline.isDisabled()
+                    if (pipeline && !pipeline.isDisabled()) {
+                        echo "Pipeline ${pipelineName} is ready"
+                        return true
+                    }
+                    return false
                 }
             }
 
+            echo "Starting build for: ${pipelineName}"
             // Trigger downstream builds.
             build(job: pipelineName, propagate: true, wait: true)
+            echo "Completed build for: ${pipelineName}"
         }]
     })
+    
+    echo "All downstream builds completed"
 }
 
 /**
  * The step entry point.
  */
 def call(Map config = [:]){
+    echo "=== Multi-Multibranch Pipeline Execution ==="
+    
     String repositoryName = env.JOB_NAME.split('/')[1]
-    println("Provisioning items for the job: $env.JOB_NAME")
+    echo "Job Name: ${env.JOB_NAME}"
+    echo "Repository Name: ${repositoryName}"
+    
     String rootFolderPath = "Generated/$repositoryName"
-    println("Provisioning items under the root folder: $rootFolderPath for the repository: $repositoryName")
+    echo "Root Folder Path: ${rootFolderPath}"
+    echo "Repository URL: ${env.GIT_URL}"
 
+    echo "\n=== Step 1: Provisioning Jenkins Items ==="
     List<String> jenkinsfilePaths = provisionItems(rootFolderPath, env.GIT_URL)
-    println("Provisioned items for Jenkinsfiles:\n${jenkinsfilePaths.join('\n')}")
+    echo "Found ${jenkinsfilePaths.size()} Jenkinsfile(s):"
+    jenkinsfilePaths.each { path ->
+        echo "  - ${path}"
+    }
+
+    echo "\n=== Step 2: Detecting Changes ==="
     List<String> multibranchPipelinesToRun = findMultibranchPipelinesToRun(jenkinsfilePaths)
-    println("Multibranch Pipelines to run:\n${multibranchPipelinesToRun.join('\n')}")
+    
+    if (multibranchPipelinesToRun.isEmpty()) {
+        echo "No relevant changes detected - skipping downstream builds"
+        return
+    }
+    
+    echo "Changes detected affecting ${multibranchPipelinesToRun.size()} pipeline(s):"
+    multibranchPipelinesToRun.each { pipeline ->
+        echo "  - ${pipeline}"
+    }
+
+    echo "\n=== Step 3: Triggering Downstream Builds ==="
     runPipelines(rootFolderPath, multibranchPipelinesToRun)
+    
+    echo "\n=== Multi-Multibranch Pipeline Complete ==="
 }
