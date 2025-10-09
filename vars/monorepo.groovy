@@ -66,7 +66,7 @@ List<String> getChangedDirectories(String baselineRevision) {
  * @return A list of Pipeline names, relative to the repository root.
  */
 // `java.nio.file.Path(s)` instances are not serializable, so we have to add the following annotation.
-@NonCPS
+//@NonCPS
 static List<String> findRelevantMultibranchPipelines(List<String> changedFilesPathStr, List<String> jenkinsfilePathsStr) {
     List<Path> changedFilesPath = changedFilesPathStr.collect { Paths.get(it) }
     List<Path> jenkinsfilePaths = jenkinsfilePathsStr.collect { Paths.get(it) }
