@@ -113,15 +113,6 @@ def runPipelines(String rootFolderPath, List<String> multibranchPipelinesToRun) 
 }
 
 /**
- * Get the list of Multibranch Pipelines that should be run according to the changeset.
- * @param jenkinsfilePaths The list of Jenkinsfiles paths.
- * @return The list of Multibranch Pipelines to run relative to the repository root.
- */
-List<String> findMultibranchPipelinesToRun(List<String> jenkinsfilePaths) {
-    findRelevantMultibranchPipelines(getChangedDirectories(baselineRevision), jenkinsfilePaths)
-}
-
-/**
  * The step entry point.
  */
 def call(Map config = [:]){
