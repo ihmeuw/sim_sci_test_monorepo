@@ -158,7 +158,7 @@ def runPipelines(String rootFolderPath, List<String> multibranchPipelinesToRun) 
  * The step entry point.
  */
 def call(Map config = [:]){
-    echo "Step 1: Provisioning Jenkins Items"
+    println "Step 1: Provisioning Jenkins Items"
     
     String repositoryName = env.JOB_NAME.split('/')[1]
     String rootFolderPath = "Generated/$repositoryName"
