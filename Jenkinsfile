@@ -27,7 +27,7 @@ Note that updating the shared repo will take affect on the next pipeline invocat
 // Load the full vivarium_build_utils library at the expected version
 def vbu_version = get_vbu_version()
 echo "Loading vivarium_build_utils version: ${vbu_version}"
-library("vivarium_build_utils@${vbu_version}")
+library("vivarium_build_utils@07ed5760ad0a20bad2594ec5fba8137f0356a27f")
 
 pipeline {
     agent any
