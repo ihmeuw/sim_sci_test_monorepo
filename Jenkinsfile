@@ -42,9 +42,10 @@ pipeline {
                     echo "Job Name: ${env.JOB_NAME}"
                     echo "Repository URL: ${env.GIT_URL}"
                     echo "Branch: ${env.GIT_BRANCH ?: env.BRANCH_NAME}"
-                    
+
                     // Call the shared library step
-                    monorepo()
+                    def jenkinsfiles = findFiles(glob: '**/*/Jenkinsfile').collect { it.path }
+                    monorepo(jenkinsfiles: jenkinsfiles)
                     
                     echo "=== MULTI-MULTIBRANCH PIPELINE COMPLETE ==="
                 }
