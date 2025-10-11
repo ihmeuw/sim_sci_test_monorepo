@@ -42,7 +42,6 @@ pipeline {
                     echo "Job Name: ${env.JOB_NAME}"
                     echo "Repository URL: ${env.GIT_URL}"
                     echo "Branch: ${env.GIT_BRANCH ?: env.BRANCH_NAME}"
-                    echo "VBU Version: ${vbu_version}"
                     
                     // Call the shared library step
                     monorepo()
