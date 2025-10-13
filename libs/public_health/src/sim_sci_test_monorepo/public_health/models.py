@@ -19,3 +19,6 @@ class HealthModel(CoreUtility):
 
     def simulate(self) -> str:
         return f"Simulating {self.name} for population of {self.population_size}"
+    
+    def end(self) -> str:
+        return f"Ending simulation for {self.name}"
