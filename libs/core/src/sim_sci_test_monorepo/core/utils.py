@@ -5,7 +5,7 @@ Example core utilities
 
 def hello_core():
     """A simple hello function from core."""
-    return "Hello from sim_sci_test_monorepo.core! This is a new version!"
+    return "Hello from sim_sci_test_monorepo.core! This is a new version with a broken build!"
 
 
 class CoreUtility:
