@@ -50,7 +50,7 @@ templates_path = ["_templates"]
 source_suffix = ".rst"
 master_doc = "index"
 language = "en"
-exclude_patterns = []
+exclude_patterns: list[str] = []
 pygments_style = "sphinx"
 todo_include_todos = True
 
@@ -72,7 +72,7 @@ htmlhelp_basename = "sim-sci-test-monorepo-public-health-doc"
 
 # -- Options for LaTeX output ---------------------------------------------
 
-latex_elements = {}
+latex_elements: dict[str, str] = {}
 
 latex_documents = [
     (
@@ -132,4 +132,4 @@ autodoc_typehints = "description"
 # -- nitpicky mode --------------------------------------------------------
 
 nitpicky = True
-nitpick_ignore = []
+nitpick_ignore: list[str] = []

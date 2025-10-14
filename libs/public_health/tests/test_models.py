@@ -7,13 +7,13 @@ import pytest
 from sim_sci_test_monorepo.public_health.models import HealthModel, hello_public_health
 
 
-def test_hello_public_health():
+def test_hello_public_health() -> None:
     """Test the hello_public_health function."""
     result = hello_public_health()
     assert result == "Hello from sim_sci_test_monorepo.public_health!"
 
 
-def test_health_model():
+def test_health_model() -> None:
     """Test the HealthModel class."""
     model = HealthModel("test_model", 1000)
     assert model.name == "test_model"

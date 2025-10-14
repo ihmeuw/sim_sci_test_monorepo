@@ -32,6 +32,7 @@ dev = [
     "pytest-mock",
     "black",
     "isort",
+    "mypy",
     "flake8",
     "sim-sci-test-monorepo-public-health[docs]",
 ]
@@ -82,5 +83,5 @@ disable_error_code = []
 
 # handle mypy errors when 3rd party packages are not typed.
 [[tool.mypy.overrides]]
-module = []
+module = ["sim_sci_test_monorepo.core.*"]
 ignore_missing_imports = true
