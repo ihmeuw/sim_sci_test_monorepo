@@ -15,4 +15,4 @@ class CoreUtility:
         self.name = name
 
     def greet(self) -> str:
-        return f"Core utility {self.name} is ready!"
+        return f"Core utility {self.name} is now ready!"
