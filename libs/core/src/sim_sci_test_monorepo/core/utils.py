@@ -7,6 +7,7 @@ def hello_core():
     """A simple hello function from core."""
     return "Hello from sim_sci_test_monorepo.core! This is a new version!"
 
+
 def another_core_function() -> str:
     """Another core function."""
     return "This is another core function."
