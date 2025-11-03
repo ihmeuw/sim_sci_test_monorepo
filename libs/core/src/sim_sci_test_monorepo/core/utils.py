@@ -10,7 +10,7 @@ def hello_core():
 
 def another_core_function() -> str:
     """Another core function."""
-    return "This is another core function. "
+    return "This is another core function."
 
 
 class CoreUtility:
