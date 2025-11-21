@@ -58,6 +58,8 @@ jobs:
                 fi
               done
           fi
+
+          echo "this is a root-level change check"
           
           # Create matrix JSON with library and python-version combinations
           if [ ${#CHANGED_LIBS[@]} -eq 0 ]; then
