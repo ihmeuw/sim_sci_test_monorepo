@@ -42,23 +42,21 @@ jobs:
           
           # Initialize array to track changed libraries
           CHANGED_LIBS=()
-          
-          # Check if core library has changes
-          if echo "$CHANGED_FILES" | grep -q "^libs/core/"; then
-            echo "✓ Core library has changes"
-            CHANGED_LIBS+=("core")
-          fi
-          
-          # Check if public_health library has changes
-          if echo "$CHANGED_FILES" | grep -q "^libs/public_health/"; then
-            echo "✓ Public health library has changes"
-            CHANGED_LIBS+=("public_health")
-          fi
+          # Get all directories under libs/
+          ALL_LIBS=$(find libs -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)
+          echo "All libraries found: $ALL_LIBS"
           
           # Check for root-level changes that affect all libraries
           if echo "$CHANGED_FILES" | grep -qE "^(pyproject.toml|Makefile|setup.sh)$"; then
             echo "✓ Root-level files changed, testing all libraries"
-            CHANGED_LIBS=("core" "public_health")
+            CHANGED_LIBS=($ALL_LIBS)
+            else
+              for lib in $ALL_LIBS; do
+                if echo "$CHANGED_FILES" | grep -q "^libs/${lib}/"; then
+                  echo "✓ Library '${lib}' has changes"
+                  CHANGED_LIBS+=("${lib}")
+                fi
+              done
           fi
           
           # Create matrix JSON with library and python-version combinations
@@ -67,15 +65,13 @@ jobs:
             echo "matrix={\"include\":[]}" >> $GITHUB_OUTPUT
             echo "has-changes=false" >> $GITHUB_OUTPUT
           else
-            # Remove duplicates
-            UNIQUE_LIBS=($(echo "${CHANGED_LIBS[@]}" | tr ' ' '\n' | sort -u))
             
-            echo "Building matrix for libraries: ${UNIQUE_LIBS[@]}"
+            echo "Building matrix for libraries: ${CHANGED_LIBS[@]}"
             
             # Build matrix with library and python-version combinations
             MATRIX_INCLUDE="["
             FIRST=true
-            for lib in "${UNIQUE_LIBS[@]}"; do
+            for lib in "${CHANGED_LIBS[@]}"; do
               # Read python versions from the library's python_versions.json
               PYTHON_VERSIONS=$(cat "libs/${lib}/python_versions.json" | jq -r '.[]')
               
