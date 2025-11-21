@@ -15,8 +15,10 @@ def test_hello_public_health() -> None:
 
 def test_health_model() -> None:
     """Test the HealthModel class."""
-    model = HealthModel("test_model", 1000)
+    model = HealthModel("test_model", 1000, "Test_Location")
     assert model.name == "test_model"
     assert model.population_size == 1000
+    assert model.location == "Test_Location"
     assert model.greet() == "Core utility test_model is ready!"
-    assert model.simulate() == "Simulating test_model for population of 1000"
+    assert model.simulate() == "Simulating test_model for population of 1000 at Test_Location"
+    assert model.end() == "Ending simulation for test_model"
