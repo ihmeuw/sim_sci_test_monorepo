@@ -111,15 +111,10 @@ jobs:
           # Install the package with dev dependencies
           uv pip install --system -e ".[dev]"
       
-      - name: Run linting for ${{ matrix.library }}
+      - name: Checking build for ${{ matrix.library }}
         run: |
           cd libs/${{ matrix.library }}
-          make lint || echo "Linting completed with warnings"
-      
-      - name: Run tests for ${{ matrix.library }}
-        run: |
-          cd libs/${{ matrix.library }}
-          make test
+          make check
 
   pr-status-check:
     name: PR Status Check
