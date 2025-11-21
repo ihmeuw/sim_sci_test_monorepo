@@ -10,7 +10,7 @@ from sim_sci_test_monorepo.public_health.models import HealthModel, hello_public
 def test_hello_public_health() -> None:
     """Test the hello_public_health function."""
     result = hello_public_health()
-    assert result == "Hello from sim_sci_test_monorepo.public_health!"
+    assert result == "Greetings from sim_sci_test_monorepo.public_health!"
 
 
 def test_health_model() -> None:
