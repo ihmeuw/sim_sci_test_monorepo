@@ -17,4 +17,4 @@ def test_core_utility():
     """Test the CoreUtility class."""
     utility = CoreUtility("test")
     assert utility.name == "test"
-    assert utility.greet() == "Core utility test is now ready!"
+    assert utility.greet() == "Core utility test is ready!"
