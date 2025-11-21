@@ -7,7 +7,7 @@ from sim_sci_test_monorepo.core.utils import CoreUtility
 
 def hello_public_health() -> str:
     """A simple hello function from public health."""
-    return "Hello from sim_sci_test_monorepo.public_health!"
+    return "Greetings from sim_sci_test_monorepo.public_health!"
 
 
 class HealthModel(CoreUtility):  # type: ignore[misc]
