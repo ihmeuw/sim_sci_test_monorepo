@@ -19,6 +19,6 @@ def test_health_model() -> None:
     assert model.name == "test_model"
     assert model.population_size == 1000
     assert model.location == "Test_Location"
-    assert model.greet() == "Core utility test_model is now ready!"
+    assert model.greet() == "Core utility test_model is ready!"
     assert model.simulate() == "Simulating test_model for population of 1000 at Test_Location"
     assert model.end() == "Ending simulation for test_model"
