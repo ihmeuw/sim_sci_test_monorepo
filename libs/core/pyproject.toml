@@ -22,7 +22,7 @@ dependencies = [
 [project.optional-dependencies]
 docs = [
     "sphinx>=5.0",
-    "sphinx-rtd-theme",
+    "sphinx-rtd-theme>=2.0.0",
     "sphinx-autodoc-typehints",
 ]
 dev = [
