@@ -35,6 +35,16 @@ jobs:
             echo "Error: Version must be in format 1.2.3"
             exit 1
           fi
+      - name: Validate Release Date
+        run: |
+          CHANGELOG_DATE=$(head -n 1 CHANGELOG.rst | grep -oP '\d{2}/\d{2}/\d{2}')          
+          TODAY=$(date +%m/%d/%y)          
+          if [ "$CHANGELOG_DATE" != "$TODAY" ]; then
+            echo "CHANGELOG date: $CHANGELOG_DATE"
+            echo "Today's date: $TODAY"
+            echo "Please update the CHANGELOG.rst with today's date before releasing."
+            exit 1
+          fi
           
       - name: Set package variables
         run: |
