@@ -1,3 +1,7 @@
+**3.6.6 - 13/45/36**
+
+  - Test changelog date validation
+
 **3.6.5 - 12/16/25**
 
   - Type-hinting: Fix mypy errors in framework/utilities.py

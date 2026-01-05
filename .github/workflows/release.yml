@@ -37,12 +37,26 @@ jobs:
           fi
       - name: Validate Release Date
         run: |
-          CHANGELOG_DATE=$(head -n 1 CHANGELOG.rst | grep -oP '\d{2}/\d{2}/\d{2}')          
+          PACKAGE="${{ github.event.inputs.package }}"
+          PACKAGE_DIR=$(echo "$PACKAGE" | sed 's/-/_/g')
+          
+          if [ -d "libs/${PACKAGE_DIR}" ]; then
+            CHANGELOG_PATH="libs/${PACKAGE_DIR}/CHANGELOG.rst"
+          else
+            CHANGELOG_PATH="CHANGELOG.rst"
+          fi
+          
+          if [ ! -f "$CHANGELOG_PATH" ]; then
+            echo "Error: CHANGELOG not found at $CHANGELOG_PATH"
+            exit 1
+          fi
+          
+          CHANGELOG_DATE=$(head -n 1 "$CHANGELOG_PATH" | grep -oP '\d{2}/\d{2}/\d{2}')          
           TODAY=$(date +%m/%d/%y)          
           if [ "$CHANGELOG_DATE" != "$TODAY" ]; then
             echo "CHANGELOG date: $CHANGELOG_DATE"
             echo "Today's date: $TODAY"
-            echo "Please update the CHANGELOG.rst with today's date before releasing."
+            echo "Please update the CHANGELOG.rst in $CHANGELOG_PATH with today's date before releasing."
             exit 1
           fi
           
