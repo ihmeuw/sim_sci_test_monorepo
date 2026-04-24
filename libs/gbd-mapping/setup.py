@@ -30,6 +30,8 @@ if not (
     print(error, file=sys.stderr)
     sys.exit(1)
 
+TAG_PREFIX = "vivarium-gbd-mapping-v"
+
 
 if __name__ == "__main__":
     base_dir = os.path.dirname(__file__)
@@ -101,7 +103,9 @@ if __name__ == "__main__":
         use_scm_version={
             "write_to": "src/gbd_mapping/_version.py",
             "write_to_template": '__version__ = "{version}"\n',
-            "tag_regex": r"^(?P<prefix>v)?(?P<version>[^\+]+)(?P<suffix>.*)?$",
+            "tag_regex": rf"^{TAG_PREFIX}(?P<version>[^\+]+)(?P<suffix>.*)?$",
+            "git_describe_command": f"git describe --dirty --tags --long --match '{TAG_PREFIX}*'",
+            "search_parent_directories": True,
         },
         setup_requires=setup_requires,
     )
