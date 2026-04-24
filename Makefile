@@ -35,6 +35,10 @@ test-core:
 test-public-health:
 	pytest libs/public_health/tests -v
 
+# Run config tree tests only
+test-config-tree:
+	pytest libs/config_tree/tests -v
+
 # Run integration tests
 test-integration:
 	python -c "from sim_sci_test_monorepo.core.utils import hello_core, CoreUtility; from sim_sci_test_monorepo.public_health.models import hello_public_health, HealthModel; print('✓ Integration test passed')"
