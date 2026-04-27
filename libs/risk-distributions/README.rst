@@ -29,3 +29,6 @@ or build it from source with
 
 `Check out the docs! <https://risk-distributions.readthedocs.io/en/latest/>`_
 -----------------------------------------------------------------------------
+
+This package exists to test Jenkins auto-provisioning of new libs in the monorepo.
+It is one of several libs in the monorepo.

@@ -60,3 +60,7 @@ Given proper permissions, you can set up this library in development mode with
 
 `Check out the docs! <https://vivarium.readthedocs.io/projects/gbd-mapping/en/latest/>`_
 ----------------------------------------------------------------------------------------
+
+
+This package exists to test Jenkins auto-provisioning of new libs in the monorepo.
+It is one of several libs in the monorepo.

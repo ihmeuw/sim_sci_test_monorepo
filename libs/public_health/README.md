@@ -13,3 +13,6 @@ pip install sim-sci-test-monorepo-public-health
 ```python
 from sim_sci_test_monorepo.public_health import ...
 ```
+
+This package exists to test Jenkins auto-provisioning of new libs in the monorepo.
+It is one of several libs in the monorepo.
