@@ -60,4 +60,3 @@ Given proper permissions, you can set up this library in development mode with
 
 `Check out the docs! <https://vivarium.readthedocs.io/projects/gbd-mapping/en/latest/>`_
 ----------------------------------------------------------------------------------------
-
