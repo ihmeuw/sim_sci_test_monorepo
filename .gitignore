@@ -119,3 +119,5 @@ libs/*/src/sim_sci_test_monorepo/*/_version.py
 
 # macOS
 *.DS_Store
+
+.claude
